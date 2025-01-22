@@ -4,6 +4,24 @@ CREATE EXTENSION IF NOT EXISTS "pg_trgm";
 CREATE EXTENSION IF NOT EXISTS "postgis";
 
 -- ddl
+
+-- Create the category table
+CREATE TABLE category (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL UNIQUE,
+    description TEXT                              
+);
+
+-- Create the product table
+CREATE TABLE product (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    category_id UUID REFERENCES category(id) ON DELETE SET NULL,
+    name TEXT NOT NULL UNIQUE,
+    description TEXT,
+    price NUMERIC(15, 2) NOT NULL CHECK (price >= 0),
+    image BYTEA
+);
+
 DROP TABLE IF EXISTS account CASCADE;
 CREATE TABLE account (
     id UUID PRIMARY KEY,
