@@ -1,0 +1,41 @@
+services:
+  frontend-1:
+    image: dti-se-private/final-project-1-frontend-1:latest
+    build:
+      context: ${FRONTEND_1_PATH}
+      dockerfile: Dockerfile
+    ports:
+      - "${FRONTEND_1_PORT}:3000"
+    env_file:
+      - ./.env
+    depends_on:
+      - backend-1
+  backend-1:
+    image: dti-se-private/final-project-1-backend-1:latest
+    build:
+      context: ${BACKEND_1_PATH}
+      dockerfile: Dockerfile
+    ports:
+      - "${BACKEND_1_PORT}:8080"
+    env_file:
+      - ./.env
+    depends_on:
+      - datastore-1
+      - datastore-2
+  datastore-1:
+    image: postgres:latest
+    ports:
+      - "${DATASTORE_1_PORT}:5432"
+    environment:
+      POSTGRES_USER: ${DATASTORE_1_USER}
+      POSTGRES_PASSWORD: ${DATASTORE_1_PASSWORD}
+      POSTGRES_DB: ${DATASTORE_1_DATABASE}
+      PGDATA: /var/lib/pg_data
+    volumes:
+      - ./migration-1.sql:/docker-entrypoint-initdb.d/migration-1.sql
+  datastore-2:
+    image: redis/redis-stack-server:latest
+    ports:
+      - "${DATASTORE_2_PORT}:6379"
+    environment:
+      - REDIS_ARGS=--requirepass ${DATASTORE_2_PASSWORD}
