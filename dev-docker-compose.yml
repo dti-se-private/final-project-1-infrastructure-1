@@ -23,7 +23,7 @@ services:
       - datastore-1
       - datastore-2
   datastore-1:
-    image: postgres:latest
+    image: postgis/postgis:latest
     ports:
       - "${DATASTORE_1_PORT}:5432"
     environment:
