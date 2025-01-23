@@ -69,6 +69,92 @@ CREATE TABLE session (
     refresh_token_expired_at TIMESTAMPTZ
 );
 
+-- Create the order table
+DROP TABLE IF EXISTS "order" CASCADE;
+CREATE TABLE "order" (  
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),  
+    account_id UUID NOT NULL,  
+    total_price NUMERIC NOT NULL,  
+    shipment_price NUMERIC NOT NULL,  
+    item_price NUMERIC NOT NULL,  
+    FOREIGN KEY (account_id) REFERENCES account(id)  
+); 
+
+-- Create the order item table
+DROP TABLE IF EXISTS order_item CASCADE;
+CREATE TABLE order_item (  
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),  
+    order_id UUID NOT NULL,  
+    product_id UUID NOT NULL,  
+    quantity NUMERIC NOT NULL,  
+    FOREIGN KEY (order_id) REFERENCES order_table(id),  
+    FOREIGN KEY (product_id) REFERENCES product(id)  
+);  
+
+-- Create the order status table 
+DROP TABLE IF EXISTS order_status CASCADE;
+CREATE TABLE order_status (  
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),  
+    order_id UUID NOT NULL,  
+    status TEXT NOT NULL,  
+    time TIMESTAMPTZ NOT NULL,  
+    FOREIGN KEY (order_id) REFERENCES order_table(id)  
+);  
+
+-- Create the account permission table
+DROP TABLE IF EXISTS account_permission CASCADE;
+CREATE TABLE account_permission (  
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),  
+    account_id UUID NOT NULL,  
+    permission TEXT NOT NULL,  
+    FOREIGN KEY (account_id) REFERENCES account(id)  
+);
+
+-- Create the account address table
+DROP TABLE IF EXISTS account_address CASCADE;
+CREATE TABLE account_address (  
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),  
+    account_id UUID NOT NULL,  
+    name TEXT NOT NULL,  
+    address TEXT NOT NULL,  
+    location GEOGRAPHY,  
+    is_primary BOOLEAN NOT NULL DEFAULT FALSE,  
+    FOREIGN KEY (account_id) REFERENCES account(id)  
+);
+
+-- Create the verification table
+DROP TABLE IF EXISTS verification CASCADE;
+CREATE TABLE verification (  
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),  
+    account_id UUID NOT NULL,  
+    type TEXT NOT NULL,  
+    code TEXT NOT NULL,  
+    init_time TIMESTAMPTZ NOT NULL,  
+    end_time TIMESTAMPTZ NOT NULL,  
+    FOREIGN KEY (account_id) REFERENCES account(id)  
+);
+
+-- Create the cart item table
+DROP TABLE IF EXISTS cart_item CASCADE;
+CREATE TABLE cart_item (  
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),  
+    account_id UUID NOT NULL,  
+    product_id UUID NOT NULL,  
+    quantity NUMERIC NOT NULL,  
+    FOREIGN KEY (account_id) REFERENCES account(id),  
+    FOREIGN KEY (product_id) REFERENCES product(id)  
+);
+
+-- Create the payment proof table
+DROP TABLE IF EXISTS payment_proof CASCADE;
+CREATE TABLE payment_proof (  
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),  
+    order_id UUID NOT NULL,  
+    file BYTEA NOT NULL,  
+    extension TEXT NOT NULL,  
+    time TIMESTAMPTZ NOT NULL,  
+    FOREIGN KEY (order_id) REFERENCES order_table(id)  
+);
 
 -- dml
 INSERT INTO account (id, name, email, password, phone) VALUES
