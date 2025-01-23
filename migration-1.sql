@@ -4,6 +4,31 @@ CREATE EXTENSION IF NOT EXISTS "pg_trgm";
 CREATE EXTENSION IF NOT EXISTS "postgis";
 
 -- ddl
+-- Create the warehouse table
+CREATE TABLE warehouse (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(), 
+    name TEXT NOT NULL UNIQUE,
+    description TEXT, 
+    location GEOGRAPHY 
+);
+
+-- Create the warehouse_product table
+CREATE TABLE warehouse_product (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(), 
+    warehouse_id UUID NOT NULL REFERENCES warehouse(id) ON DELETE CASCADE, 
+    product_id UUID NOT NULL REFERENCES product(id) ON DELETE CASCADE,
+    quantity NUMERIC NOT NULL CHECK (quantity >= 0)
+);
+
+-- Create the warehouse_ledger table
+CREATE TABLE warehouse_ledger (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(), 
+    warehouse_product_id UUID NOT NULL REFERENCES warehouse_product(id) ON DELETE CASCADE,
+    pre_quantity NUMERIC NOT NULL CHECK (pre_quantity >= 0),
+    post_quantity NUMERIC NOT NULL CHECK (post_quantity >= 0),
+    time TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    is_approved BOOLEAN DEFAULT FALSE 
+);
 
 -- Create the category table
 CREATE TABLE category (
