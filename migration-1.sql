@@ -82,11 +82,13 @@ CREATE TABLE warehouse_product (
 DROP TABLE IF EXISTS warehouse_ledger CASCADE;
 CREATE TABLE warehouse_ledger (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(), 
-    warehouse_product_id UUID NOT NULL REFERENCES warehouse_product(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    product_id UUID NOT NULL REFERENCES product(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    origin_warehouse_id UUID NOT NULL REFERENCES warehouse(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    destination_warehouse_id UUID NOT NULL REFERENCES warehouse(id) ON DELETE CASCADE ON UPDATE CASCADE,
     pre_quantity NUMERIC NOT NULL CHECK (pre_quantity >= 0),
     post_quantity NUMERIC NOT NULL CHECK (post_quantity >= 0),
     time TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    is_approved BOOLEAN DEFAULT FALSE 
+    status TEXT NOT NULL  DEFAULT 'WAITING_APPROVAL' CHECK (status IN ('APPROVED', 'REJECTED', 'WAITING_APPROVAL'))
 );
 
 -- Create the order table
@@ -236,9 +238,22 @@ INSERT INTO warehouse_product (warehouse_id, product_id, quantity)
 SELECT warehouse.id, product.id, floor(random()*1001)
 FROM warehouse CROSS JOIN product;
 
-INSERT INTO warehouse_ledger (warehouse_product_id, pre_quantity, post_quantity, time, is_approved)
-SELECT warehouse_product.id, floor(random()*1001), floor(random()*1001), now(), true
-FROM warehouse_product;
+INSERT INTO warehouse_ledger (product_id, origin_warehouse_id, destination_warehouse_id, pre_quantity, post_quantity, time, status)
+SELECT 
+    wp.product_id, 
+    wp.warehouse_id AS origin_warehouse_id, 
+    (SELECT id FROM warehouse ORDER BY random() LIMIT 1) AS destination_warehouse_id, 
+    wp.quantity AS pre_quantity, 
+    GREATEST(wp.quantity - floor(random()*1001), 0) AS post_quantity, 
+    now() AS time, 
+    CASE 
+        WHEN a.email = 'admin@mail.com' THEN 'WAITING_APPROVAL' 
+        ELSE 'APPROVED' 
+    END AS status
+FROM 
+    warehouse_product wp
+JOIN 
+    account a ON a.id = (SELECT id FROM account ORDER BY random() LIMIT 1);
 
 INSERT INTO "order" (account_id, total_price, shipment_origin, shipment_destination, shipment_price, item_price)
 VALUES
