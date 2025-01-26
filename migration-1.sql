@@ -138,12 +138,11 @@ CREATE TABLE account_permission (
 DROP TABLE IF EXISTS verification CASCADE;
 CREATE TABLE verification (  
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),  
-    account_id UUID NOT NULL,  
+    email TEXT NOT NULL,  
     type TEXT NOT NULL,  
     code TEXT NOT NULL,  
     init_time TIMESTAMPTZ NOT NULL,  
-    end_time TIMESTAMPTZ NOT NULL,  
-    FOREIGN KEY (account_id) REFERENCES account(id) ON DELETE CASCADE ON UPDATE CASCADE
+    end_time TIMESTAMPTZ NOT NULL
 );
 
 -- Create the cart item table
@@ -247,7 +246,7 @@ SELECT
     GREATEST(wp.quantity - floor(random()*1001), 0) AS post_quantity, 
     now() AS time, 
     CASE 
-        WHEN a.email = 'admin@mail.com' THEN 'WAITING_APPROVAL' 
+        WHEN a.email = 'super.admin@mail.com' THEN 'WAITING_APPROVAL' 
         ELSE 'APPROVED' 
     END AS status
 FROM 
