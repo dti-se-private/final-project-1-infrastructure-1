@@ -241,18 +241,19 @@ INSERT INTO warehouse_ledger (product_id, origin_warehouse_id, destination_wareh
 SELECT 
     wp.product_id, 
     wp.warehouse_id AS origin_warehouse_id, 
-    (SELECT id FROM warehouse ORDER BY random() LIMIT 1) AS destination_warehouse_id, 
-    wp.quantity AS pre_quantity, 
-    GREATEST(wp.quantity - floor(random()*1001), 0) AS post_quantity, 
+    w2.id AS destination_warehouse_id, 
+    floor(random()*1001) AS pre_quantity, 
+    floor(random()*1001) AS post_quantity, 
     now() AS time, 
-    CASE 
-        WHEN a.email = 'super.admin@mail.com' THEN 'WAITING_APPROVAL' 
-        ELSE 'APPROVED' 
-    END AS status
+    statuses.status
 FROM 
     warehouse_product wp
-JOIN 
-    account a ON a.id = (SELECT id FROM account ORDER BY random() LIMIT 1);
+CROSS JOIN 
+    warehouse w2
+CROSS JOIN 
+    (VALUES ('APPROVED'), ('WAITING_APPROVAL')) AS statuses(status)
+WHERE 
+    wp.warehouse_id != w2.id;
 
 INSERT INTO "order" (account_id, total_price, shipment_origin, shipment_destination, shipment_price, item_price)
 VALUES
