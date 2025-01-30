@@ -1,4 +1,4 @@
--- Active: 1737608980215@@localhost@5432@db
+-- Active: 1732281362598@@127.0.0.1@5432@db
 -- extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pg_trgm";
@@ -161,7 +161,8 @@ CREATE TABLE cart_item (
     product_id UUID NOT NULL,  
     quantity NUMERIC NOT NULL,  
     FOREIGN KEY (account_id) REFERENCES account(id) ON DELETE CASCADE ON UPDATE CASCADE,  
-    FOREIGN KEY (product_id) REFERENCES product(id) ON DELETE CASCADE ON UPDATE CASCADE
+    FOREIGN KEY (product_id) REFERENCES product(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    UNIQUE (account_id, product_id)
 );
 
 -- Create the payment proof table
