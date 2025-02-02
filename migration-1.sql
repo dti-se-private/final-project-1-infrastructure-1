@@ -156,7 +156,8 @@ CREATE TABLE cart_item (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),  
     account_id UUID REFERENCES account(id) ON DELETE CASCADE ON UPDATE CASCADE,  
     product_id UUID REFERENCES product(id) ON DELETE CASCADE ON UPDATE CASCADE,  
-    quantity NUMERIC
+    quantity NUMERIC,
+    unique (account_id, product_id)
 );
 
 -- Create the payment proof table
