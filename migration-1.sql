@@ -56,6 +56,15 @@ CREATE TABLE warehouse (
     location GEOGRAPHY 
 );
 
+-- Create the warehouse admin
+DROP TABLE IF EXISTS warehouse_admin CASCADE;
+CREATE TABLE warehouse_admin (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(), 
+    account_id UUID REFERENCES account(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    warehouse_id UUID REFERENCES warehouse(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    UNIQUE (account_id, warehouse_id)
+);
+
 -- Create the category table
 DROP TABLE IF EXISTS category CASCADE;
 CREATE TABLE category (
@@ -96,7 +105,7 @@ CREATE TABLE warehouse_ledger (
     destination_pre_quantity NUMERIC NOT NULL CHECK (destination_pre_quantity >= 0),
     destination_post_quantity NUMERIC NOT NULL CHECK (destination_post_quantity >= 0),
     time TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    status TEXT NOT NULL DEFAULT 'WAITING_FOR_APPROVAL' CHECK (status IN ('APPROVED', 'REJECTED', 'WAITING_FOR_APPROVAL'))
+    status TEXT DEFAULT 'WAITING_FOR_APPROVAL' CHECK (status IN ('APPROVED', 'REJECTED', 'WAITING_FOR_APPROVAL'))
 );
 
 -- Create the order table
@@ -207,6 +216,14 @@ VALUES
     ('Bandung Warehouse 2', 'Secondary warehouse in Bandung for local processing.', ST_GeogFromText('POINT(107.630811 -6.927397)')),  
     ('Jakarta Warehouse 3', 'Third warehouse in Jakarta for overflow storage.', ST_GeogFromText('POINT(106.865416 -6.229644)'));  
 
+-- Insert realistic dummy data into warehouse_admin table
+INSERT INTO warehouse_admin (warehouse_id, account_id)
+SELECT warehouse.id, account.id
+FROM warehouse, account
+WHERE account.email = 'warehouse.admin@mail.com'
+LIMIT 3;
+
+select * from account;
 -- Insert dummy data for category table  
 INSERT INTO category (id, name, description)  
 VALUES  
@@ -353,63 +370,132 @@ from (
     GROUP BY o.id
 ) as sq1;
 
+SELECT json_build_object(
+    'id', "order".id,
+    'totalPrice', "order".total_price,
+    'shipmentOrigin', "order".shipment_origin,
+    'shipmentDestination', "order".shipment_destination,
+    'shipmentPrice', "order".shipment_price,
+    'itemPrice', "order".item_price,
+    'statuses', (
+        SELECT json_agg(json_build_object(
+            'id', order_status.id,
+            'status', order_status.status,
+            'time', order_status.time
+        ))
+        FROM (
+            SELECT *
+            FROM order_status
+            WHERE order_status.order_id = "order".id
+            ORDER BY order_status.time
+        ) as order_status
+    ),
+    'items', (
+        SELECT json_agg(json_build_object(
+            'id', order_item.id,
+            'quantity', order_item.quantity,
+            'product', json_build_object(
+                'id', product.id,
+                'name', product.name,
+                'description', product.description,
+                'price', product.price,
+                'image', product.image,
+                'category', json_build_object(
+                    'id', category.id,
+                    'name', category.name,
+                    'description', category.description
+                )
+            )
+        ))
+        FROM order_item
+        JOIN product ON order_item.product_id = product.id
+        JOIN category ON product.category_id = category.id
+        WHERE order_item.order_id = "order".id
+    ),
+    'paymentProofs', (
+        SELECT json_agg(json_build_object(
+            'id', payment_proof.id,
+            'file', payment_proof.file,
+            'extension', payment_proof.extension,
+            'time', payment_proof.time
+        ))
+        FROM payment_proof
+        WHERE payment_proof.order_id = "order".id
+    )
+) as item
+FROM "order"
+WHERE "order".id in (
+    SELECT DISTINCT order_item.order_id
+    FROM order_item
+    JOIN warehouse_product ON order_item.product_id = warehouse_product.product_id
+    JOIN warehouse_admin ON warehouse_product.warehouse_id = warehouse_admin.warehouse_id
+    WHERE order_item.order_id = "order".id
+    AND warehouse_admin.account_id = 'a91c504c-117d-41a3-9e6c-63c90496e298'
+)
+
 
 SELECT json_build_object(
-            'id', "order".id,
-            'totalPrice', "order".total_price,
-            'shipmentOrigin', "order".shipment_origin,
-            'shipmentDestination', "order".shipment_destination,
-            'shipmentPrice', "order".shipment_price,
-            'itemPrice', "order".item_price,
-            'statuses', (
-                SELECT json_agg(json_build_object(
-                    'id', order_status.id,
-                    'status', order_status.status,
-                    'time', order_status.time
-                ))
-                FROM (
-                    SELECT *
-                    FROM order_status
-                    WHERE order_status.order_id = "order".id
-                    ORDER BY order_status.time
-                ) as order_status
-            ),
-            'items', (
-                SELECT json_agg(json_build_object(
-                    'id', order_item.id,
-                    'quantity', order_item.quantity,
-                    'product', json_build_object(
-                        'id', product.id,
-                        'name', product.name,
-                        'description', product.description,
-                        'price', product.price,
-                        'image', product.image,
-                        'category', json_build_object(
-                            'id', category.id,
-                            'name', category.name,
-                            'description', category.description
-                        )
-                    )
-                ))
-                FROM order_item
-                JOIN product ON order_item.product_id = product.id
-                JOIN category ON product.category_id = category.id
-                WHERE order_item.order_id = "order".id
-            ),
-            'paymentProofs', (
-                SELECT json_agg(json_build_object(
-                    'id', payment_proof.id,
-                    'file', payment_proof.file,
-                    'extension', payment_proof.extension,
-                    'time', payment_proof.time
-                ))
-                FROM payment_proof
-                WHERE payment_proof.order_id = "order".id
+    'id', "order".id,
+    'totalPrice', "order".total_price,
+    'shipmentOrigin', "order".shipment_origin,
+    'shipmentDestination', "order".shipment_destination,
+    'shipmentPrice', "order".shipment_price,
+    'itemPrice', "order".item_price,
+    'statuses', (
+        SELECT json_agg(json_build_object(
+            'id', order_status.id,
+            'status', order_status.status,
+            'time', order_status.time
+        ))
+        FROM (
+            SELECT *
+            FROM order_status
+            WHERE order_status.order_id = "order".id
+            ORDER BY order_status.time
+        ) as order_status
+    ),
+    'items', (
+        SELECT json_agg(json_build_object(
+            'id', order_item.id,
+            'quantity', order_item.quantity,
+            'product', json_build_object(
+                'id', product.id,
+                'name', product.name,
+                'description', product.description,
+                'price', product.price,
+                'image', product.image,
+                'category', json_build_object(
+                    'id', category.id,
+                    'name', category.name,
+                    'description', category.description
+                )
             )
-        ) as item
-FROM "order";
+        ))
+        FROM order_item
+        JOIN product ON order_item.product_id = product.id
+        JOIN category ON product.category_id = category.id
+        WHERE order_item.order_id = "order".id
+    ),
+    'paymentProofs', (
+        SELECT json_agg(json_build_object(
+            'id', payment_proof.id,
+            'file', payment_proof.file,
+            'extension', payment_proof.extension,
+            'time', payment_proof.time
+        ))
+        FROM payment_proof
+        WHERE payment_proof.order_id = "order".id
+    )
+) as item
+FROM "order"
+INNER JOIN order_item ON "order".id = order_item.order_id
+JOIN warehouse_product ON order_item.product_id = warehouse_product.product_id
+JOIN warehouse_admin ON warehouse_product.warehouse_id = warehouse_admin.warehouse_id
+WHERE order_item.order_id = "order".id
+AND warehouse_admin.account_id = 'a91c504c-117d-41a3-9e6c-63c90496e298';
+GROUP BY "order".id;
 
-
+select * from account;
 
 SELECT json_build_object(
             'id', "order".id,
@@ -466,12 +552,17 @@ SELECT json_build_object(
         ) as item
 FROM "order"
 WHERE "order".id in (
-    SELECT order_status.order_id
-    FROM order_status
-    WHERE order_status.status = 'WAITING_FOR_PAYMENT_CONFIRMATION'
+        SELECT order_status.order_id
+        FROM order_status
+        WHERE order_status.id in (
+            SELECT DISTINCT ON (order_status.order_id) order_status.id
+            FROM order_status
+            ORDER BY order_status.order_id, order_status.time DESC
+        )
+        AND order_status.status = 'WAITING_FOR_PAYMENT_CONFIRMATION'
 )
 order by "order".total_price;
 
 select * from "order" where id='038f2bcc-b1c9-4df0-8f1a-4a763308a31e';
 
-select * from order_status order by time asc;
+select * from order_status;
