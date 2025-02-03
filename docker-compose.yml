@@ -36,9 +36,9 @@ services:
       POSTGRES_DB: ${DATASTORE_1_DATABASE}
       PGDATA: /var/lib/pg_data
     volumes:
-      - ./migration-1.sql:/docker-entrypoint-initdb.d/migration-1.sql
       - /root/teamcity/data/${AGENT_NAME}/work/${CHECKOUT_DIR}/volumes/datastore-1:/var/lib/postgresql/data
-      - /root/teamcity/data/${AGENT_NAME}/work/${CHECKOUT_DIR}/migration-1.sql:/docker-entrypoint-initdb.d/migration-1.sql
+      - /root/teamcity/data/${AGENT_NAME}/work/${CHECKOUT_DIR}/migration-1-ddl.sql:/docker-entrypoint-initdb.d/migration-1-ddl.sql
+      - /root/teamcity/data/${AGENT_NAME}/work/${CHECKOUT_DIR}/migration-1-dml.sql:/docker-entrypoint-initdb.d/migration-1-dml.sql
   datastore-2:
     image: redis/redis-stack-server:latest
     ports:
