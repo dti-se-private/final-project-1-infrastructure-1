@@ -108,6 +108,16 @@ CREATE TABLE warehouse_ledger (
     status TEXT DEFAULT 'WAITING_FOR_APPROVAL' CHECK (status IN ('APPROVED', 'REJECTED', 'WAITING_FOR_APPROVAL'))
 );
 
+-- Create the stock_ledger table
+DROP TABLE IF EXISTS stock_ledger CASCADE;
+CREATE TABLE stock_ledger (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(), 
+    warehouse_product_id UUID NOT NULL REFERENCES warehouse_product(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    pre_quantity NUMERIC NOT NULL CHECK (pre_quantity >= 0),
+    post_quantity NUMERIC NOT NULL CHECK (post_quantity >= 0),
+    time TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Create the order table
 DROP TABLE IF EXISTS "order" CASCADE;
 CREATE TABLE "order" (  
