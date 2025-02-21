@@ -172,6 +172,19 @@ CROSS JOIN
 ) AS proof(file, extension, time)
 WHERE status = 'WAITING_FOR_PAYMENT_CONFIRMATION'
 
+INSERT INTO stock_ledger (warehouse_product_id, pre_quantity, post_quantity, time)
+SELECT
+    wp.id,
+    pre_qty,
+    CASE
+        WHEN random() < 0.5 THEN pre_qty + floor(random() * 1000)::NUMERIC 
+        ELSE pre_qty - floor(random() * 1000)::NUMERIC 
+    END,
+    NOW() - (random() * interval '6 months')
+FROM
+    warehouse_product wp
+CROSS JOIN generate_series(1, 500) AS gs
+CROSS JOIN LATERAL (SELECT floor(2000 + random() * 2000)::NUMERIC AS pre_qty) AS pq; 
 
 -- dql
 SELECT * 
@@ -197,27 +210,6 @@ from (
     left outer join order_status as os on o.id = os.order_id
     GROUP BY o.id
 ) as sq1;
-
-
-SELECT json_build_object(
-        'id', cart_item.id,
-        'quantity', cart_item.quantity,
-        'product', json_build_object(
-            'id', product.id,
-            'name', product.name,
-            'description', product.description,
-            'price', product.price,
-            'image', product.image,
-            'category', json_build_object(
-                'id', category.id,
-                'name', category.name,
-                'description', category.description
-            )
-        )
-    ) as item
-FROM cart_item
-JOIN product ON cart_item.product_id =product.id
-JOIN category ON product.category_id = category.id
 
 SELECT *
 FROM (
@@ -281,90 +273,3 @@ ORDER BY SIMILARITY(sq1.item::text, '"name": "Produk 3"') DESC;
 select (now()-interval) - time, now() - interval, interval
 from (values (now(), '1 day'::interval)) as t(time, interval)
 where ((now()-interval-interval) - time) <= interval '-1 days';
-
-SELECT *
-                FROM (
-                    SELECT json_build_object(
-                                'id', "order".id,
-                                'account', (
-                                    SELECT json_build_object(
-                                        'id', account.id,
-                                        'name', account.name,
-                                        'email', account.email,
-                                        'password', account.password,
-                                        'phone', account.phone,
-                                        'image', account.image,
-                                        'is_verified', account.is_verified
-                                    )
-                                    FROM account
-                                    WHERE account.id = "order".account_id
-                                ),
-                                'total_price', "order".total_price,
-                                'shipment_origin', "order".shipment_origin,
-                                'shipment_destination', "order".shipment_destination,
-                                'shipment_price', "order".shipment_price,
-                                'item_price', "order".item_price,
-                                'statuses', (
-                                    SELECT json_agg(json_build_object(
-                                        'id', order_status.id,
-                                        'status', order_status.status,
-                                        'time', order_status.time
-                                    ))
-                                    FROM (
-                                        SELECT *
-                                        FROM order_status
-                                        WHERE order_status.order_id = "order".id
-                                        ORDER BY order_status.time
-                                    ) as order_status
-                                ),
-                                'items', (
-                                    SELECT json_agg(json_build_object(
-                                        'id', order_item.id,
-                                        'quantity', order_item.quantity,
-                                        'product', json_build_object(
-                                            'id', product.id,
-                                            'name', product.name,
-                                            'description', product.description,
-                                            'price', product.price,
-                                            'image', product.image,
-                                            'quantity', COALESCE((
-                                                SELECT sum(warehouse_product.quantity)
-                                                FROM warehouse_product
-                                                WHERE warehouse_product.product_id = product.id
-                                            ), 0),
-                                            'category', json_build_object(
-                                                'id', category.id,
-                                                'name', category.name,
-                                                'description', category.description
-                                            )
-                                        )
-                                    ))
-                                    FROM order_item
-                                    INNER JOIN product ON order_item.product_id = product.id
-                                    INNER JOIN category ON product.category_id = category.id
-                                    WHERE order_item.order_id = "order".id
-                                ),
-                                'payment_proofs', (
-                                    SELECT json_agg(json_build_object(
-                                        'id', payment_proof.id,
-                                        'file', payment_proof.file,
-                                        'extension', payment_proof.extension,
-                                        'time', payment_proof.time
-                                    ))
-                                    FROM payment_proof
-                                    WHERE payment_proof.order_id = "order".id
-                                )
-                            ) as item
-                    FROM "order"
-                    WHERE "order".id in (
-                        SELECT sq2.order_id
-                        FROM (
-                            SELECT *
-                            FROM order_status
-                            WHERE order_status.order_id = "order".id
-                            ORDER BY order_status.time DESC
-                            LIMIT 1
-                        ) as sq2
-                        WHERE sq2.status = 'CANCELED'
-                    )
-                ) as sq1
