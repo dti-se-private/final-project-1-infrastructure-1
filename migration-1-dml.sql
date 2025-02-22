@@ -85,11 +85,10 @@ INSERT INTO warehouse_product (warehouse_id, product_id, quantity)
 SELECT warehouse.id, product.id, floor(random()*1001)
 FROM warehouse CROSS JOIN product;
 
-INSERT INTO warehouse_ledger (product_id, origin_warehouse_id, destination_warehouse_id, origin_pre_quantity, origin_post_quantity, destination_pre_quantity, destination_post_quantity, time, status)
+INSERT INTO warehouse_ledger (origin_warehouse_product_id, destination_warehouse_product_id, origin_pre_quantity, origin_post_quantity, destination_pre_quantity, destination_post_quantity, time, status)
 SELECT 
-    wp.product_id, 
-    wp.warehouse_id AS origin_warehouse_id, 
-    w2.id AS destination_warehouse_id, 
+    wp1.id AS origin_warehouse_product_id, 
+    wp2.id AS destination_warehouse_product_id, 
     floor(random()*1001) AS origin_pre_quantity, 
     floor(random()*1001) AS origin_post_quantity, 
     floor(random()*1001) AS destination_pre_quantity, 
@@ -97,13 +96,13 @@ SELECT
     now() AS time, 
     statuses.status
 FROM 
-    warehouse_product wp
+    warehouse_product wp1
 CROSS JOIN 
-    warehouse w2
+    warehouse_product wp2
 CROSS JOIN 
     (VALUES ('APPROVED'), ('WAITING_FOR_APPROVAL')) AS statuses(status)
 WHERE 
-    wp.warehouse_id != w2.id;
+    wp1.id != wp2.id;
 
 INSERT INTO "order" (account_id, total_price, shipment_origin, shipment_destination, shipment_price, item_price, origin_warehouse_id)
 VALUES
@@ -184,7 +183,7 @@ SELECT
 FROM
     warehouse_product wp
 CROSS JOIN generate_series(1, 500) AS gs
-CROSS JOIN LATERAL (SELECT floor(2000 + random() * 2000)::NUMERIC AS pre_qty) AS pq; 
+CROSS JOIN LATERAL (SELECT floor(1000 + random() * 1000)::NUMERIC AS pre_qty) AS pq; 
 
 -- dql
 SELECT * 

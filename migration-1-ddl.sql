@@ -97,9 +97,8 @@ CREATE TABLE warehouse_product (
 DROP TABLE IF EXISTS warehouse_ledger CASCADE;
 CREATE TABLE warehouse_ledger (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(), 
-    product_id UUID NOT NULL REFERENCES product(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    origin_warehouse_id UUID NOT NULL REFERENCES warehouse(id) ON DELETE CASCADE ON UPDATE CASCADE,
-    destination_warehouse_id UUID NOT NULL REFERENCES warehouse(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    origin_warehouse_product_id UUID NOT NULL REFERENCES warehouse_product(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    destination_warehouse_product_id UUID NOT NULL REFERENCES warehouse_product(id) ON DELETE CASCADE ON UPDATE CASCADE,
     origin_pre_quantity NUMERIC NOT NULL CHECK (origin_pre_quantity >= 0),
     origin_post_quantity NUMERIC NOT NULL CHECK (origin_post_quantity >= 0),
     destination_pre_quantity NUMERIC NOT NULL CHECK (destination_pre_quantity >= 0),
