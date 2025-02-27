@@ -106,26 +106,33 @@ WHERE
 
 INSERT INTO "order" (account_id, total_price, shipment_origin, shipment_destination, shipment_price, item_price, origin_warehouse_id)
 VALUES
-    ((SELECT id FROM account WHERE email = 'edward@mail.com'), 115000, ST_GeogFromText('POINT(106.832893 -6.190790)'), ST_GeogFromText('POINT(106.990745 -6.229644)'), 15000, 100000, (SELECT id FROM warehouse ORDER BY id LIMIT 1 OFFSET 0)),
-    ((SELECT id FROM account WHERE email = 'charles@mail.com'), 115000, ST_GeogFromText('POINT(106.865416 -6.229644)'), ST_GeogFromText('POINT(106.816667 -6.175391)'), 15000, 100000, (SELECT id FROM warehouse ORDER BY id LIMIT 1 OFFSET 1)),
-    ((SELECT id FROM account WHERE email = 'fiona@mail.com'), 130000, ST_GeogFromText('POINT(107.605127 -6.914744)'), ST_GeogFromText('POINT(112.736111 -7.250445)'), 30000, 100000, (SELECT id FROM warehouse ORDER BY id LIMIT 1 OFFSET 2)),
-    ((SELECT id FROM account WHERE email = 'customer@mail.com'), 130000, ST_GeogFromText('POINT(107.605127 -6.914744)'), ST_GeogFromText('POINT(112.736111 -7.250445)'), 30000, 100000, (SELECT id FROM warehouse ORDER BY id LIMIT 1 OFFSET 3));
+    ((SELECT id FROM account WHERE email = 'customer@mail.com'), 130000, ST_GeogFromText('POINT(107.605127 -6.914744)'), ST_GeogFromText('POINT(112.736111 -7.250445)'), 30000, 100000, (SELECT id FROM warehouse ORDER BY id LIMIT 1 OFFSET 0)),
+    ((SELECT id FROM account WHERE email = 'edward@mail.com'), 115000, ST_GeogFromText('POINT(106.832893 -6.190790)'), ST_GeogFromText('POINT(106.990745 -6.229644)'), 15000, 100000, (SELECT id FROM warehouse ORDER BY id LIMIT 1 OFFSET 1)),
+    ((SELECT id FROM account WHERE email = 'charles@mail.com'), 115000, ST_GeogFromText('POINT(106.865416 -6.229644)'), ST_GeogFromText('POINT(106.816667 -6.175391)'), 15000, 100000, (SELECT id FROM warehouse ORDER BY id LIMIT 1 OFFSET 2)),
+    ((SELECT id FROM account WHERE email = 'fiona@mail.com'), 130000, ST_GeogFromText('POINT(107.605127 -6.914744)'), ST_GeogFromText('POINT(112.736111 -7.250445)'), 30000, 100000, (SELECT id FROM warehouse ORDER BY id LIMIT 1 OFFSET 3)),
+    ((SELECT id FROM account WHERE email = 'customer@mail.com'), 150000, ST_GeogFromText('POINT(107.605127 -6.914744)'), ST_GeogFromText('POINT(112.736111 -7.250445)'), 50000, 100000, (SELECT id FROM warehouse ORDER BY id LIMIT 1 OFFSET 4));
+
 
 INSERT INTO order_status (order_id, status, time)
 VALUES
-    ((SELECT id FROM "order" ORDER BY id LIMIT 1 OFFSET 0), 'WAITING_FOR_PAYMENT', now() + interval '0 days'),
-    ((SELECT id FROM "order" ORDER BY id LIMIT 1 OFFSET 0), 'WAITING_FOR_PAYMENT_CONFIRMATION', now() + interval '1 days'),
-    ((SELECT id FROM "order" ORDER BY id LIMIT 1 OFFSET 0), 'PROCESSING', now() + interval '2 days'),
-    ((SELECT id FROM "order" ORDER BY id LIMIT 1 OFFSET 0), 'SHIPPING', now() + interval '3 days'),
-    ((SELECT id FROM "order" ORDER BY id LIMIT 1 OFFSET 0), 'ORDER_CONFIRMED', now() + interval '4 days'),
-    ((SELECT id FROM "order" ORDER BY id LIMIT 1 OFFSET 1), 'WAITING_FOR_PAYMENT', now() + interval '0 days'),
-    ((SELECT id FROM "order" ORDER BY id LIMIT 1 OFFSET 1), 'WAITING_FOR_PAYMENT_CONFIRMATION', now() + interval '1 days'),
-    ((SELECT id FROM "order" ORDER BY id LIMIT 1 OFFSET 1), 'PROCESSING', now() + interval '2 days'),
-    ((SELECT id FROM "order" ORDER BY id LIMIT 1 OFFSET 2), 'WAITING_FOR_PAYMENT', now() + interval '0 days'),
-    ((SELECT id FROM "order" ORDER BY id LIMIT 1 OFFSET 2), 'WAITING_FOR_PAYMENT_CONFIRMATION', now() + interval '1 days'),
-    ((SELECT id FROM "order" ORDER BY id LIMIT 1 OFFSET 3), 'WAITING_FOR_PAYMENT', now() + interval '0 days'),
-    ((SELECT id FROM "order" ORDER BY id LIMIT 1 OFFSET 3), 'WAITING_FOR_PAYMENT_CONFIRMATION', now() + interval '1 days'),
-    ((SELECT id FROM "order" ORDER BY id LIMIT 1 OFFSET 3), 'CANCELED', now() + interval '2 days');
+    ((SELECT "order".id FROM "order" INNER JOIN account on account.id = "order".account_id WHERE account.email = 'customer@mail.com' ORDER BY 1 LIMIT 1 OFFSET 0), 'WAITING_FOR_PAYMENT', now() + interval '0 days'),
+    ((SELECT "order".id FROM "order" INNER JOIN account on account.id = "order".account_id WHERE account.email = 'customer@mail.com' ORDER BY 1 LIMIT 1 OFFSET 0), 'WAITING_FOR_PAYMENT_CONFIRMATION', now() + interval '1 days'),
+    ((SELECT "order".id FROM "order" INNER JOIN account on account.id = "order".account_id WHERE account.email = 'customer@mail.com' ORDER BY 1 LIMIT 1 OFFSET 0), 'PROCESSING', now() + interval '2 days'),
+    ((SELECT "order".id FROM "order" INNER JOIN account on account.id = "order".account_id WHERE account.email = 'customer@mail.com' ORDER BY 1 LIMIT 1 OFFSET 0), 'SHIPPING', now() + interval '3 days'),
+    ((SELECT "order".id FROM "order" INNER JOIN account on account.id = "order".account_id WHERE account.email = 'customer@mail.com' ORDER BY 1 LIMIT 1 OFFSET 0), 'ORDER_CONFIRMED', now() + interval '4 days'),
+    ((SELECT "order".id FROM "order" INNER JOIN account on account.id = "order".account_id WHERE account.email = 'edward@mail.com' ORDER BY 1 LIMIT 1 OFFSET 0), 'WAITING_FOR_PAYMENT', now() + interval '0 days'),
+    ((SELECT "order".id FROM "order" INNER JOIN account on account.id = "order".account_id WHERE account.email = 'edward@mail.com' ORDER BY 1 LIMIT 1 OFFSET 0), 'WAITING_FOR_PAYMENT_CONFIRMATION', now() + interval '1 days'),
+    ((SELECT "order".id FROM "order" INNER JOIN account on account.id = "order".account_id WHERE account.email = 'edward@mail.com' ORDER BY 1 LIMIT 1 OFFSET 0), 'PROCESSING', now() + interval '2 days'),
+    ((SELECT "order".id FROM "order" INNER JOIN account on account.id = "order".account_id WHERE account.email = 'charles@mail.com' ORDER BY 1 LIMIT 1 OFFSET 0), 'WAITING_FOR_PAYMENT', now() + interval '0 days'),
+    ((SELECT "order".id FROM "order" INNER JOIN account on account.id = "order".account_id WHERE account.email = 'charles@mail.com' ORDER BY 1 LIMIT 1 OFFSET 0), 'WAITING_FOR_PAYMENT_CONFIRMATION', now() + interval '1 days'),
+    ((SELECT "order".id FROM "order" INNER JOIN account on account.id = "order".account_id WHERE account.email = 'fiona@mail.com' ORDER BY 1 LIMIT 1 OFFSET 0), 'WAITING_FOR_PAYMENT', now() + interval '0 days'),
+    ((SELECT "order".id FROM "order" INNER JOIN account on account.id = "order".account_id WHERE account.email = 'fiona@mail.com' ORDER BY 1 LIMIT 1 OFFSET 0), 'WAITING_FOR_PAYMENT_CONFIRMATION', now() + interval '1 days'),
+    ((SELECT "order".id FROM "order" INNER JOIN account on account.id = "order".account_id WHERE account.email = 'fiona@mail.com' ORDER BY 1 LIMIT 1 OFFSET 0), 'CANCELED', now() + interval '2 days'),
+    ((SELECT "order".id FROM "order" INNER JOIN account on account.id = "order".account_id WHERE account.email = 'customer@mail.com' ORDER BY 1 LIMIT 1 OFFSET 1), 'WAITING_FOR_PAYMENT', now() + interval '10 days'),
+    ((SELECT "order".id FROM "order" INNER JOIN account on account.id = "order".account_id WHERE account.email = 'customer@mail.com' ORDER BY 1 LIMIT 1 OFFSET 1), 'WAITING_FOR_PAYMENT_CONFIRMATION', now() + interval '11 days'),
+    ((SELECT "order".id FROM "order" INNER JOIN account on account.id = "order".account_id WHERE account.email = 'customer@mail.com' ORDER BY 1 LIMIT 1 OFFSET 1), 'PROCESSING', now() + interval '12 days'),
+    ((SELECT "order".id FROM "order" INNER JOIN account on account.id = "order".account_id WHERE account.email = 'customer@mail.com' ORDER BY 1 LIMIT 1 OFFSET 1), 'SHIPPING', now() + interval '13 days'),
+    ((SELECT "order".id FROM "order" INNER JOIN account on account.id = "order".account_id WHERE account.email = 'customer@mail.com' ORDER BY 1 LIMIT 1 OFFSET 1), 'ORDER_CONFIRMED', now() + interval '14 days');
 
 
 INSERT INTO order_item (order_id, product_id, quantity, warehouse_ledger_id)
@@ -134,8 +141,16 @@ VALUES
     ((SELECT id FROM "order" ORDER BY id LIMIT 1 OFFSET 0), (SELECT id FROM product ORDER BY id LIMIT 1 OFFSET 1), 11, (SELECT id FROM warehouse_ledger ORDER BY id LIMIT 1 OFFSET 1)),
     ((SELECT id FROM "order" ORDER BY id LIMIT 1 OFFSET 0), (SELECT id FROM product ORDER BY id LIMIT 1 OFFSET 2), 12, (SELECT id FROM warehouse_ledger ORDER BY id LIMIT 1 OFFSET 2)),
     ((SELECT id FROM "order" ORDER BY id LIMIT 1 OFFSET 0), (SELECT id FROM product ORDER BY id LIMIT 1 OFFSET 3), 13, (SELECT id FROM warehouse_ledger ORDER BY id LIMIT 1 OFFSET 3)),
-    ((SELECT id FROM "order" ORDER BY id LIMIT 1 OFFSET 1), (SELECT id FROM product ORDER BY id LIMIT 1 OFFSET 4), 14, (SELECT id FROM warehouse_ledger ORDER BY id LIMIT 1 OFFSET 4)),
-    ((SELECT id FROM "order" ORDER BY id LIMIT 1 OFFSET 1), (SELECT id FROM product ORDER BY id LIMIT 1 OFFSET 5), 15, (SELECT id FROM warehouse_ledger ORDER BY id LIMIT 1 OFFSET 5));
+    ((SELECT id FROM "order" ORDER BY id LIMIT 1 OFFSET 1), (SELECT id FROM product ORDER BY id LIMIT 1 OFFSET 4), 10, (SELECT id FROM warehouse_ledger ORDER BY id LIMIT 1 OFFSET 0)),
+    ((SELECT id FROM "order" ORDER BY id LIMIT 1 OFFSET 1), (SELECT id FROM product ORDER BY id LIMIT 1 OFFSET 5), 11, (SELECT id FROM warehouse_ledger ORDER BY id LIMIT 1 OFFSET 1)),
+    ((SELECT id FROM "order" ORDER BY id LIMIT 1 OFFSET 2), (SELECT id FROM product ORDER BY id LIMIT 1 OFFSET 6), 10, (SELECT id FROM warehouse_ledger ORDER BY id LIMIT 1 OFFSET 0)),
+    ((SELECT id FROM "order" ORDER BY id LIMIT 1 OFFSET 2), (SELECT id FROM product ORDER BY id LIMIT 1 OFFSET 7), 11, (SELECT id FROM warehouse_ledger ORDER BY id LIMIT 1 OFFSET 1)),
+    ((SELECT id FROM "order" ORDER BY id LIMIT 1 OFFSET 3), (SELECT id FROM product ORDER BY id LIMIT 1 OFFSET 8), 10, (SELECT id FROM warehouse_ledger ORDER BY id LIMIT 1 OFFSET 0)),
+    ((SELECT id FROM "order" ORDER BY id LIMIT 1 OFFSET 3), (SELECT id FROM product ORDER BY id LIMIT 1 OFFSET 9), 11, (SELECT id FROM warehouse_ledger ORDER BY id LIMIT 1 OFFSET 1)),
+    ((SELECT id FROM "order" ORDER BY id LIMIT 1 OFFSET 4), (SELECT id FROM product ORDER BY id LIMIT 1 OFFSET 10), 10, (SELECT id FROM warehouse_ledger ORDER BY id LIMIT 1 OFFSET 0)),
+    ((SELECT id FROM "order" ORDER BY id LIMIT 1 OFFSET 4), (SELECT id FROM product ORDER BY id LIMIT 1 OFFSET 11), 11, (SELECT id FROM warehouse_ledger ORDER BY id LIMIT 1 OFFSET 1));
+
+
 
 INSERT INTO account_permission (account_id, permission)
 VALUES
@@ -184,6 +199,7 @@ FROM
     warehouse_product wp
 CROSS JOIN generate_series(1, 500) AS gs
 CROSS JOIN LATERAL (SELECT floor(1000 + random() * 1000)::NUMERIC AS pre_qty) AS pq; 
+
 
 -- dql
 SELECT * 
@@ -272,3 +288,61 @@ ORDER BY SIMILARITY(sq1.item::text, '"name": "Produk 3"') DESC;
 select (now()-interval) - time, now() - interval, interval
 from (values (now(), '1 day'::interval)) as t(time, interval)
 where ((now()-interval-interval) - time) <= interval '-1 days';
+
+
+select os.*
+from "order" o
+inner join account a on o.account_id = a.id
+inner join order_status os on os.order_id = o.id
+where a.email = 'kharisma.azhari02@gmail.com'
+
+
+SELECT
+    DATE_TRUNC('day', sq1.time) as x,
+    SUM(order_item.quantity * product.price) as y
+FROM (
+    SELECT *
+    FROM order_status
+    WHERE order_status.id in (
+        SELECT sq2.id
+            FROM (
+                SELECT *
+                FROM order_status sq2_os
+                WHERE sq2_os.order_id = order_status.order_id
+                ORDER BY sq2_os.time DESC
+                LIMIT 1
+            ) as sq2
+            WHERE sq2.status = 'ORDER_CONFIRMED'
+    )
+    AND order_status.order_id in (
+        SELECT DISTINCT "order".id
+        FROM "order"
+        INNER JOIN warehouse ON warehouse.id = "order".origin_warehouse_id
+        INNER JOIN warehouse_admin ON warehouse_admin.warehouse_id = warehouse.id
+        WHERE "order".id = order_status.order_id
+        -- WHERE warehouse_admin.account_id = '495fbe85-48d9-46c1-b766-1c58040514de'
+    )
+) as sq1
+INNER JOIN order_item on order_item.order_id = sq1.order_id
+INNER JOIN product ON product.id = order_item.product_id
+INNER JOIN category ON category.id = product.category_id
+GROUP BY x
+ORDER BY x
+
+
+SELECT
+DATE_TRUNC('day', stock_ledger.time) as x,
+SUM(stock_ledger.post_quantity - stock_ledger.pre_quantity) as y
+FROM stock_ledger
+INNER JOIN warehouse_product ON warehouse_product.id = stock_ledger.warehouse_product_id
+WHERE (stock_ledger.post_quantity - stock_ledger.pre_quantity) > 0
+AND warehouse_product.warehouse_id in (
+    SELECT DISTINCT warehouse_admin.warehouse_id
+    FROM warehouse_admin
+)
+GROUP BY x
+ORDER BY x;
+
+SELECT DISTINCT warehouse.id
+                    FROM warehouse
+                    INNER JOIN warehouse_admin ON warehouse_admin.warehouse_id = warehouse.id
