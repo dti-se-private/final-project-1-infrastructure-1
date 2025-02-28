@@ -4,14 +4,22 @@ services:
     build:
       context: ${FRONTEND_1_PATH}
       dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_BACKEND_1_URL=${NEXT_PUBLIC_BACKEND_1_URL}
+        - NEXT_PUBLIC_GOOGLE_CLIENT_ID=${NEXT_PUBLIC_GOOGLE_CLIENT_ID}
+        - NEXT_PUBLIC_GOOGLE_CLIENT_REDIRECT_URI=${NEXT_PUBLIC_GOOGLE_CLIENT_REDIRECT_URI}
     ports:
       - "${FRONTEND_1_PORT}:3000"
-    env_file:
-      - ./.env
-    volumes:
-      - /root/teamcity/data/${AGENT_NAME}/work/${CHECKOUT_DIR}/.env:/workdir/.env
+    environment:
+      - FRONTEND_1_PORT=${FRONTEND_1_PORT}
+      - FRONTEND_1_HOST=${FRONTEND_1_HOST}
+      - FRONTEND_1_URL=${FRONTEND_1_URL}
+      - NEXT_PUBLIC_BACKEND_1_URL=${NEXT_PUBLIC_BACKEND_1_URL}
+      - NEXT_PUBLIC_GOOGLE_CLIENT_ID=${NEXT_PUBLIC_GOOGLE_CLIENT_ID}
+      - NEXT_PUBLIC_GOOGLE_CLIENT_REDIRECT_URI=${NEXT_PUBLIC_GOOGLE_CLIENT_REDIRECT_URI}
     depends_on:
       - backend-1
+
   backend-1:
     image: dti-se-private/final-project-1-backend-1:latest
     build:
@@ -19,31 +27,56 @@ services:
       dockerfile: Dockerfile
     ports:
       - "${BACKEND_1_PORT}:8080"
-    env_file:
-      - ./.env
-    volumes:
-      - /root/teamcity/data/${AGENT_NAME}/work/${CHECKOUT_DIR}/.env:/workdir/.env
+    environment:
+      - BACKEND_1_PORT=${BACKEND_1_PORT}
+      - BACKEND_1_HOST=${BACKEND_1_HOST}
+      - BACKEND_1_URL=${BACKEND_1_URL}
+      - BCRYPT_SALT=${BCRYPT_SALT}
+      - JWT_SECRET=${JWT_SECRET}
+      - DATASTORE_1_USER=${DATASTORE_1_USER}
+      - DATASTORE_1_PASSWORD=${DATASTORE_1_PASSWORD}
+      - DATASTORE_1_HOST=${DATASTORE_1_HOST}
+      - DATASTORE_1_PORT=${DATASTORE_1_PORT}
+      - DATASTORE_1_DATABASE=${DATASTORE_1_DATABASE}
+      - DATASTORE_2_HOST=${DATASTORE_2_HOST}
+      - DATASTORE_2_PORT=${DATASTORE_2_PORT}
+      - DATASTORE_2_PASSWORD=${DATASTORE_2_PASSWORD}
+      - MAILGUN_API_URL=${MAILGUN_API_URL}
+      - MAILGUN_API_KEY=${MAILGUN_API_KEY}
+      - MAILGUN_DOMAIN=${MAILGUN_DOMAIN}
+      - BITESHIP_API_URL=${BITESHIP_API_URL}
+      - BITESHIP_API_KEY=${BITESHIP_API_KEY}
+      - MIDTRANS_API_URL=${MIDTRANS_API_URL}
+      - MIDTRANS_API_KEY=${MIDTRANS_API_KEY}
+      - MIDTRANS_CALLBACK_HOST=${MIDTRANS_CALLBACK_HOST}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_CLIENT_REDIRECT_URI=${GOOGLE_CLIENT_REDIRECT_URI}
+      - GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY}
     depends_on:
       - datastore-1
       - datastore-2
+
   datastore-1:
-    image: postgres:latest
+    image: postgis/postgis:latest
     ports:
       - "${DATASTORE_1_PORT}:5432"
     environment:
-      POSTGRES_USER: ${DATASTORE_1_USER}
-      POSTGRES_PASSWORD: ${DATASTORE_1_PASSWORD}
-      POSTGRES_DB: ${DATASTORE_1_DATABASE}
-      PGDATA: /var/lib/pg_data
+      - POSTGRES_USER=${DATASTORE_1_USER}
+      - POSTGRES_PASSWORD=${DATASTORE_1_PASSWORD}
+      - POSTGRES_DB=${DATASTORE_1_DATABASE}
+      - PGDATA=/var/lib/pg_data
+      - DATASTORE_1_HOST=${DATASTORE_1_HOST}
+      - DATASTORE_1_PORT=${DATASTORE_1_PORT}
     volumes:
-      - /root/teamcity/data/${AGENT_NAME}/work/${CHECKOUT_DIR}/volumes/datastore-1:/var/lib/postgresql/data
-      - /root/teamcity/data/${AGENT_NAME}/work/${CHECKOUT_DIR}/migration-1-ddl.sql:/docker-entrypoint-initdb.d/migration-1-ddl.sql
-      - /root/teamcity/data/${AGENT_NAME}/work/${CHECKOUT_DIR}/migration-1-dml.sql:/docker-entrypoint-initdb.d/migration-1-dml.sql
+      - ./migration-1.sql:/docker-entrypoint-initdb.d/migration-1.sql
+
   datastore-2:
     image: redis/redis-stack-server:latest
     ports:
       - "${DATASTORE_2_PORT}:6379"
     environment:
       - REDIS_ARGS=--requirepass ${DATASTORE_2_PASSWORD}
-    volumes:
-      - /root/teamcity/data/${AGENT_NAME}/work/${CHECKOUT_DIR}/volumes/datastore-2:/data
+      - DATASTORE_2_HOST=${DATASTORE_2_HOST}
+      - DATASTORE_2_PORT=${DATASTORE_2_PORT}
+      - DATASTORE_2_PASSWORD=${DATASTORE_2_PASSWORD}
