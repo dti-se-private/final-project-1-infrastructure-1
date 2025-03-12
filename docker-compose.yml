@@ -39,3 +39,4 @@ services:
       - "${DATASTORE_2_PORT}:6379"
     environment:
       - REDIS_ARGS=--requirepass ${DATASTORE_2_PASSWORD}
+# 
